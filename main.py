@@ -84,6 +84,15 @@ def optimize_image(
         None, "--dir", "-d", help="Path to save optimized image"
     ),
 ):
+    """Optimizes image
+
+    Args:
+        path (Path, optional): Path to image. Defaults to typer.Argument(..., help="Path to image", exists=True).
+        width (Optional[int], optional): Width of image. Defaults to typer.Option(None, "--width", "-w", help="Width of image").
+        height (Optional[int], optional): Height of image. Defaults to typer.Option( None, "--height", "-H", help="Height of image" ).
+        output_name (Optional[str], optional): Output name of optimized image. Defaults to typer.Option( None, "--name", "-n", help="Output name of image" ).
+        output_dir (Optional[Path], optional): Output path to optimized image. Defaults to typer.Option( None, "--dir", "-d", help="Path to save optimized image" ).
+    """
     try:
         with Image.open(path) as im:
             output_name = get_output_name(output_name, path)
