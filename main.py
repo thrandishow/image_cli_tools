@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 import typer
 from PIL import Image
-from .utils import print_exception, get_output_name, get_output_path
+from utils import print_exception, get_output_name, get_output_path
 
 app = typer.Typer(add_completion=False)
 
@@ -71,7 +71,7 @@ def resize_image(
 
 
 @app.command()
-def opitimize_image(
+def optimize_image(
     path: Path = typer.Argument(..., help="Path to image", exists=True),
     width: Optional[int] = typer.Option(None, "--width", "-w", help="Width of image"),
     height: Optional[int] = typer.Option(
@@ -93,7 +93,8 @@ def opitimize_image(
                 width = width if width is not None else im.width
                 height = height if height is not None else im.height
                 im = im.resize(size=(width, height))
-        # TODO: Add optimization
+
+            im.save(output_path, optimize=True, quality=95)
     except Exception as e:
         print_exception(e)
 
