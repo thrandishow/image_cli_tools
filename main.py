@@ -97,14 +97,18 @@ def optimize_image(
         with Image.open(path) as im:
             primal_size: float = round(path.stat().st_size / 1024**2, 2)
             output_name = utils.get_output_name(output_name, path)
-            output_path = utils.get_output_path(output_dir, output_name)
+            output_path = utils.get_output_path(output_dir, output_name).with_suffix(
+                ".jpg"
+            )
+            if im.mode in ("RGBA", "P"):
+                im = im.convert("RGB")
 
             if (width or height) is not None:
                 width = width if width is not None else im.width
                 height = height if height is not None else im.height
-                im = im.resize(size=(width, height))
+                im = im.thumbnail((width, height), Image.Resampling.LANCZOS)
 
-            im.save(output_path, optimize=True, quality=95)
+            im.save(output_path, optimize=True, quality=8)
             end_size: float = round(output_path.stat().st_size / 1024**2, 2)
             size_benefit_percents = utils.calculate_benefit(primal_size, end_size)
             typer.echo(

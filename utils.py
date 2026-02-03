@@ -9,7 +9,7 @@ def print_exception(e: Exception):
 
 def get_output_name(output_name: None | str, path: Path):
     if output_name is None:
-        output_name = f"{path.stem}_resized{path.suffix}"
+        output_name = f"{path.stem}_changed{path.suffix}"
     return output_name
 
 
