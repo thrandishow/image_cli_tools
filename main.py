@@ -1,8 +1,10 @@
+from functools import partial
 from pathlib import Path
 from typing import Optional
 import typer
 from PIL import Image
 import utils
+import multiprocessing
 
 app = typer.Typer(add_completion=False)
 
@@ -35,7 +37,7 @@ def resize_image(
     width: int = typer.Argument(..., help="Width of image"),
     height: int = typer.Argument(..., help="Height of image"),
     output_name: Optional[str] = typer.Option(
-        None, "--name", "-n", help="Resized image name"
+        None, "--name", "-n", help="Resized image name with format (png, jpg, etc...)"
     ),
     output_dir: Optional[Path] = typer.Option(
         None, "--dir", "-d", help="Path to save resized image"
@@ -73,10 +75,8 @@ def resize_image(
 @app.command()
 def optimize_image(
     path: Path = typer.Argument(..., help="Path to image", exists=True),
-    width: Optional[int] = typer.Option(None, "--width", "-w", help="Width of image"),
-    height: Optional[int] = typer.Option(
-        None, "--height", "-H", help="Height of image"
-    ),
+    width: Optional[int] = typer.Option(None, "--width", help="Width of image"),
+    height: Optional[int] = typer.Option(None, "--height", help="Height of image"),
     output_name: Optional[str] = typer.Option(
         None, "--name", "-n", help="Output name of image"
     ),
@@ -84,13 +84,13 @@ def optimize_image(
         None, "--dir", "-d", help="Path to save optimized image"
     ),
 ):
-    """Optimizes image
+    """Optimizes image, format of image is jpg
 
     Args:
         path (Path, optional): Path to image. Defaults to typer.Argument(..., help="Path to image", exists=True).
         width (Optional[int], optional): Width of image. Defaults to typer.Option(None, "--width", "-w", help="Width of image").
         height (Optional[int], optional): Height of image. Defaults to typer.Option( None, "--height", "-H", help="Height of image" ).
-        output_name (Optional[str], optional): Output name of optimized image. Defaults to typer.Option( None, "--name", "-n", help="Output name of image" ).
+        output_name (Optional[str], optional): Output name of optimized image (without suffix!). Defaults to typer.Option( None, "--name", "-n", help="Output name of image" ).
         output_dir (Optional[Path], optional): Output path to optimized image. Defaults to typer.Option( None, "--dir", "-d", help="Path to save optimized image" ).
     """
     try:
@@ -100,23 +100,64 @@ def optimize_image(
             output_path = utils.get_output_path(output_dir, output_name).with_suffix(
                 ".jpg"
             )
-            if im.mode in ("RGBA", "P"):
-                im = im.convert("RGB")
+        
+            if im.mode == "P" and "transparency" in im.info:
+                im = im.convert("RGBA")
 
             if (width or height) is not None:
                 width = width if width is not None else im.width
                 height = height if height is not None else im.height
-                im = im.thumbnail((width, height), Image.Resampling.LANCZOS)
+                im.thumbnail((width, height), Image.Resampling.LANCZOS)
 
-            im.save(output_path, optimize=True, quality=8)
+        
+            if im.mode == "RGBA":
+                im = im.convert("RGB")
+
+            im.save(output_path, "JPEG", quality=50)
+
             end_size: float = round(output_path.stat().st_size / 1024**2, 2)
             size_benefit_percents = utils.calculate_benefit(primal_size, end_size)
             typer.echo(
-                f"Optimized image saved to: {typer.style(str(output_path), fg=typer.colors.GREEN)} {typer.style(f"{size_benefit_percents}% ⬆️",fg="magenta")}"
+                f"Optimized image saved to: {typer.style(str(output_path), fg="green")} {typer.style(f"{size_benefit_percents}% ⬆️",fg="magenta")}"
             )
 
     except Exception as e:
         utils.print_exception(e)
+
+
+@app.command()
+def optimize_bulk(
+    folder_input_path: Path = typer.Argument(..., help="Path to folder with images"),
+    width: Optional[int] = typer.Option(None, "--width"),
+    height: Optional[int] = typer.Option(None, "--height"),
+    quality: Optional[int] = typer.Option(85, "--quality", "-q"),
+    folder_output_path: Optional[Path] = typer.Option(
+        None, "--folder", "-f", help="Folder, where images will be saved"
+    ),
+):
+    extensions = ("*.jpg", "*.jpeg", "*.png", "*.webp")
+    files = []
+    for ext in extensions:
+        files.extend(list(folder_input_path.glob(ext)))
+
+    if not files:
+        typer.secho("Files are not found", fg="yellow")
+        return
+
+    typer.echo(
+        f"Found files: {typer.style(len(files),fg="green")}. Running processing on all cores..."
+    )
+
+    worker_func = partial(
+        utils.process_single_image,
+        width=width,
+        height=height,
+        output_dir=folder_output_path,
+        quality=quality,
+    )
+
+    with multiprocessing.Pool() as pool:
+        pool.map(worker_func, files)
 
 
 if __name__ == "__main__":
