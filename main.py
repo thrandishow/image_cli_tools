@@ -100,7 +100,7 @@ def optimize_image(
             output_path = utils.get_output_path(output_dir, output_name).with_suffix(
                 ".jpg"
             )
-        
+
             if im.mode == "P" and "transparency" in im.info:
                 im = im.convert("RGBA")
 
@@ -109,7 +109,6 @@ def optimize_image(
                 height = height if height is not None else im.height
                 im.thumbnail((width, height), Image.Resampling.LANCZOS)
 
-        
             if im.mode == "RGBA":
                 im = im.convert("RGB")
 
@@ -135,6 +134,15 @@ def optimize_bulk(
         None, "--folder", "-f", help="Folder, where images will be saved"
     ),
 ):
+    """Optimizes folder of images
+
+    Args:
+        folder_input_path (Path, optional): Folder with images. Defaults to typer.Argument(..., help="Path to folder with images").
+        width (Optional[int], optional): Width of optimized images. Defaults to typer.Option(None, "--width").
+        height (Optional[int], optional): Height of optimized images. Defaults to typer.Option(None, "--height").
+        quality (Optional[int], optional): Quality of optimized images. Defaults to typer.Option(85, "--quality", "-q").
+        folder_output_path (Optional[Path], optional): Folder where optimized images will be saved. Defaults to typer.Option( None, "--folder", "-f", help="Folder, where images will be saved" ).
+    """
     extensions = ("*.jpg", "*.jpeg", "*.png", "*.webp")
     files = []
     for ext in extensions:
