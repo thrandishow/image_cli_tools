@@ -3,21 +3,20 @@ from pathlib import Path
 from typing import Optional
 import typer
 from PIL import Image
-import utils
+from . import utils
 import multiprocessing
 
-app = typer.Typer(add_completion=False)
-
+app: typer.Typer = typer.Typer()
 
 @app.command()
-def info(path: Path = typer.Argument(..., help="Path to image", exists=True)):
+def info(path: Path = typer.Argument(..., help="Path to image", exists=True)) -> None:
     """Shows information about the image
 
     Args:
         path (Path, required): Path to image. Defaults to typer.Argument(..., help="Path to image", exists=True).
 
     Raises:
-        typer.Exit:  Exit the program
+        utils.print_exception:  Exit the program
     """
     try:
         with Image.open(path) as im:
@@ -25,7 +24,7 @@ def info(path: Path = typer.Argument(..., help="Path to image", exists=True)):
             typer.echo(f"Image name: {typer.style(im.filename, fg="green")}")
             typer.echo(f"Image format: {typer.style(im.format, fg="green")}")
             typer.echo(f"Image size: {typer.style(f"{width}x{height}", fg="green")}")
-            typer.echo(f"Image mode: {typer.secho(im.mode, fg="green")}")
+            typer.echo(f"Image mode: {typer.style(im.mode, fg="green")}")
 
     except Exception as e:
         utils.print_exception(e)
@@ -42,7 +41,7 @@ def resize_image(
     output_dir: Optional[Path] = typer.Option(
         None, "--dir", "-d", help="Path to save resized image"
     ),
-):
+) -> None:
     """Resizes image
 
     Args:
@@ -53,7 +52,7 @@ def resize_image(
         output_dir (Optional[Path], optional): Output dir of resized image. Defaults to typer.Option( None, "--dir", "-d", help="Path to save resized image" ).
 
     Raises:
-        typer.Exit: Exit the program
+        utils.print_exception: Exit the program
     """
 
     try:
@@ -83,7 +82,7 @@ def optimize_image(
     output_dir: Optional[Path] = typer.Option(
         None, "--dir", "-d", help="Path to save optimized image"
     ),
-):
+) -> None:
     """Optimizes image, format of image is jpg
 
     Args:
@@ -133,7 +132,7 @@ def optimize_bulk(
     folder_output_path: Optional[Path] = typer.Option(
         None, "--folder", "-f", help="Folder, where images will be saved"
     ),
-):
+) -> None:
     """Optimizes folder of images
 
     Args:

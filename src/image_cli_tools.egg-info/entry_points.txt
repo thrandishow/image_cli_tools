@@ -1,0 +1,2 @@
+[console_scripts]
+image-cli = image_cli.main:app

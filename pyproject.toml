@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-cli-tools"
+version = "0.1.0"
+description = "A powerful and easy-to-use command-line tool for image processing."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "typer",
+    "Pillow",
+]
+
+[project.scripts]
+image-cli = "image_cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
