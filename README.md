@@ -16,7 +16,7 @@
 
 To use this tool, you'll need the following on your system:
 
-- **Python 3.14+**
+- **Python 3.9+**
 
 ## Installation
 
@@ -34,10 +34,10 @@ To use this tool, you'll need the following on your system:
     source .venv/bin/activate
     ```
 
-3. **Install the required packages:**
+3. **Install the package:**
 
     ```bash
-    pip install -r requirements.txt
+    pip install .
     ```
 
 ## 🚀 Usage guide
